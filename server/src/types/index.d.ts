@@ -1,0 +1,10 @@
+// This is necessary to extend the Express Request interface
+import * as express from "express";
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any; // Replace 'any' with your User type
+    }
+  }
+}

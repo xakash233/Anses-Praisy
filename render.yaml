@@ -1,0 +1,38 @@
+services:
+  # Backend API
+  - type: web
+    name: praisy-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build && npx prisma migrate deploy
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: praisy-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://praisy-web.onrender.com # Update this if you change the frontend service name
+
+  # Frontend Web App
+  - type: web
+    name: praisy-web
+    runtime: node
+    plan: free
+    rootDir: client
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0
+      - key: NEXT_PUBLIC_API_URL
+        value: https://praisy-api.onrender.com/api # Update this if you change the backend service name
+
+databases:
+  - name: praisy-db
+    plan: free
