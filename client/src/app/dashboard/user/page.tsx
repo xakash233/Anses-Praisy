@@ -195,9 +195,27 @@ export default function UserDashboard() {
                                         <span className="text-sm text-white">Feb 2026</span>
                                     </div>
                                 </div>
-                                <Button className="w-full mt-4 bg-white text-black hover:bg-gray-200 font-medium">
-                                    Edit Profile
-                                </Button>
+                                <div className="grid grid-cols-2 gap-3 mt-4">
+                                    <Button variant="outline" className="border-white/10 hover:bg-white/5 font-medium">
+                                        Edit Profile
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        className="bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border border-red-500/20 font-medium"
+                                        onClick={async () => {
+                                            if (confirm("Are you sure you want to delete your account? This action is permanent and cannot be undone.")) {
+                                                try {
+                                                    await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/${user?.id}`, { withCredentials: true });
+                                                    router.push("/login?deleted=true");
+                                                } catch (error) {
+                                                    alert("Failed to delete account");
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        Delete Account
+                                    </Button>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

@@ -47,19 +47,35 @@ router.get("/:id", protect, adminOnly, async (req, res) => {
     }
 });
 
-router.delete("/:id", protect, adminOnly, async (req, res) => {
+router.delete("/:id", protect, async (req, res) => {
     try {
         const userId = req.params.id as string;
-        const user = await prisma.user.findUnique({
+        const currentUserId = (req as any).user.id;
+        const currentUserRole = (req as any).user.role;
+
+        // Find the user to be deleted
+        const userToDelete = await prisma.user.findUnique({
             where: { id: userId },
         });
 
-        if (!user) {
+        if (!userToDelete) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        if (user.role === "ADMIN") {
-            return res.status(403).json({ message: "Cannot delete admin user" });
+        // Authorization logic:
+        // 1. User can delete themselves (isSelf)
+        // 2. Admin can delete others (isAdmin)
+        // 3. Admin cannot delete other admins (protect other admins)
+
+        const isSelf = currentUserId === userId;
+        const isAdmin = currentUserRole === "ADMIN";
+
+        if (!isSelf && !isAdmin) {
+            return res.status(403).json({ message: "Not authorized to delete this user" });
+        }
+
+        if (!isSelf && userToDelete.role === "ADMIN") {
+            return res.status(403).json({ message: "Cannot delete other admin users" });
         }
 
         await prisma.user.delete({

@@ -45,10 +45,19 @@ export default function UserDetailsPage() {
     }, [currentUser, userId, router]);
 
     const handleDelete = async () => {
-        if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+        const isSelf = user?.id === currentUser?.id;
+        const msg = isSelf
+            ? "Are you sure you want to delete YOUR account? This action is permanent and you will be immediately logged out."
+            : "Are you sure you want to delete this user? This action cannot be undone.";
+
+        if (!confirm(msg)) return;
         try {
             await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, { withCredentials: true });
-            router.push("/dashboard/admin");
+            if (isSelf) {
+                router.push("/login?deleted=true");
+            } else {
+                router.push("/dashboard/admin");
+            }
         } catch (error) {
             alert("Failed to delete user");
         }
@@ -88,9 +97,9 @@ export default function UserDetailsPage() {
                             }`}>
                             {user.role}
                         </span>
-                        {user.role !== "ADMIN" && (
+                        {(user.role !== "ADMIN" || user.id === currentUser?.id) && (
                             <Button variant="destructive" size="sm" onClick={handleDelete} className="bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border border-red-500/20">
-                                <Trash2 className="w-4 h-4 mr-2" /> Delete User
+                                <Trash2 className="w-4 h-4 mr-2" /> {user.id === currentUser?.id ? "Delete My Account" : "Delete User"}
                             </Button>
                         )}
                     </div>
